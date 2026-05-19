@@ -1,0 +1,26 @@
+# ── Web framework ────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+
+# ── Database ─────────────────────────────────────────────────────────
+sqlalchemy
+psycopg2-binary
+asyncpg
+
+# ── Validation / Config ─────────────────────────────────────────────
+pydantic[email]
+python-dotenv
+
+# ── Auth ─────────────────────────────────────────────────────────────
+firebase-admin
+
+# ── LLM / AI ────────────────────────────────────────────────────────
+groq
+langchain-groq
+langchain-core
+
+# ── PDF parsing ──────────────────────────────────────────────────────
+pdfplumber
+
+# ── Excel parsing (for lab test data loading) ────────────────────────
+openpyxl
