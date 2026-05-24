@@ -22,10 +22,10 @@ security = HTTPBearer()
 
 class TokenRequest(BaseModel):
     token: str
-    name:   Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
     mobile: Optional[str] = None
-    dob:    Optional[str] = None
-
+    dob: Optional[str] = None
 
 @router.post("/register")
 async def register(request: TokenRequest, db: Session = Depends(get_auth_db)):
@@ -34,22 +34,32 @@ async def register(request: TokenRequest, db: Session = Depends(get_auth_db)):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    # If user already exists, just return them (idempotent)
     existing = db.query(User).filter(User.firebase_uid == decoded["uid"]).first()
     if existing:
+        if request.email and existing.email != request.email:
+            existing.email = request.email
+            db.commit()
+            db.refresh(existing)
         return {"message": "Already registered", "email": existing.email}
 
-    # Create new row in Neon DB
+    try:
+        dob_value = date.fromisoformat(request.dob) if request.dob else None
+    except ValueError:
+        raise HTTPException(status_code=400, detail="dob must be in YYYY-MM-DD format")
+
+    email_value = request.email or decoded.get("email")
+
     new_user = User(
         firebase_uid=decoded["uid"],
-        email=decoded.get("email"),
+        email=email_value,
         name=request.name,
         mobile=request.mobile,
-        dob=date.fromisoformat(request.dob) if request.dob else None
+        dob=dob_value
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
     return {"message": "User registered successfully", "email": new_user.email}
 
 
